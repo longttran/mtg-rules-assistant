@@ -64,73 +64,32 @@ aws configure set ca_bundle "<path-to-certifi>\cacert.pem"
 - 5/5 unit tests passing (offline, no AWS needed).
 - 4/4 live evals passing (`python evals/run_evals.py`).
 - Deployed model: `us.anthropic.claude-haiku-4-5-20251001-v1:0` in `us-east-2`.
+- RAG over the MTG Comprehensive Rules via Bedrock Knowledge Base + OpenSearch Serverless (`search_rules` tool).
 
 ## Known gaps / next steps
 
-- **RAG over Comprehensive Rules** — in progress, see below.
 - Single-turn questions only; no conversation memory.
 - No auth or rate limiting on the UI.
 
-## RAG over Comprehensive Rules — in progress
+## RAG over Comprehensive Rules — ✅ Complete
 
-Goal: ingest the full MTG Comprehensive Rules (~963 KB text file) into a Bedrock Knowledge
-Base so the assistant can answer rules questions beyond individual card lookups.
+The MTG Comprehensive Rules (~963 KB) are ingested into a Bedrock Knowledge Base backed by
+OpenSearch Serverless. The agent uses the `search_rules` tool to look up rules text,
+keyword definitions, and game mechanics before answering rules questions.
 
-### What's been set up
+### AWS resources
 
-| Resource | Name / ID | Status |
-|---|---|---|
-| S3 bucket | `mtg-rules-assistant-kb-565950324050` | ✅ Created, rules file uploaded |
-| IAM role | `AmazonBedrockExecutionRoleForKB-mtg-rules` | ✅ Created with S3 + Bedrock model policies |
-| OpenSearch Serverless collection | `mtg-rules-kb` (`a6gghypuxlw255e4yyqf`) | ✅ ACTIVE in `us-east-2` |
-| OpenSearch encryption policy | `mtg-rules-kb-enc` | ✅ Created |
-| OpenSearch data access policy | `mtg-rules-kb-access` | ✅ Created |
-| Vector index | `mtg-rules-index` | ❌ Blocked — see below |
-| Bedrock Knowledge Base | — | ⏳ Not yet created |
-
-### Blocker: vector index creation
-
-The vector index (`mtg-rules-index`) needs to be created inside the OpenSearch Serverless
-collection before the Knowledge Base can be built. CLI/SDK calls are blocked by a 401/403
-from AOSS — the managed account puts roles under a `/managed/` path prefix that AOSS
-access policy matching doesn't handle correctly.
-
-**Workaround (next session):** create the index manually via the OpenSearch Dashboards UI:
-
-1. Go to the OpenSearch Service console in `us-east-2`
-2. Click **Serverless → Collections → mtg-rules-kb**
-3. Open the collection endpoint → **Dev Tools**
-4. Run:
-
-```json
-PUT mtg-rules-index
-{
-  "settings": { "index": { "knn": true } },
-  "mappings": {
-    "properties": {
-      "bedrock-knowledge-base-default-vector": {
-        "type": "knn_vector",
-        "dimension": 1024,
-        "method": { "name": "hnsw", "engine": "faiss", "parameters": {} }
-      },
-      "AMAZON_BEDROCK_TEXT_CHUNK": { "type": "text" },
-      "AMAZON_BEDROCK_METADATA": { "type": "text", "index": false }
-    }
-  }
-}
-```
-
-### Remaining steps after index creation
-
-1. Attach `aoss:APIAccessAll` permission on the collection to the KB IAM role
-2. Create the Bedrock Knowledge Base (VECTOR type, Titan Embeddings V2, OpenSearch storage config)
-3. Create the S3 data source pointing at `mtg-rules-assistant-kb-565950324050`
-4. Run ingestion and wait for `COMPLETE`
-5. Verify with a test `retrieve` query
-6. Wire the KB ID into the agent so it can query the rules during tool calls
+| Resource | Name / ID |
+|---|---|
+| S3 bucket | `mtg-rules-assistant-kb-565950324050` |
+| IAM role | `AmazonBedrockExecutionRoleForKB-mtg-rules` |
+| OpenSearch Serverless collection | `mtg-rules-kb` (`a6gghypuxlw255e4yyqf`) |
+| Bedrock Knowledge Base | `mtg-comprehensive-rules` (`Q10WCVYIPC`) |
+| Embedding model | `amazon.titan-embed-text-v2:0` |
+| Chunking | Hierarchical (1500 / 300 tokens, 60 token overlap) |
 
 ### Why Managed KB wasn't used
 
 Bedrock Managed Knowledge Base (`type: MANAGED`) is not available in `us-east-2` and the
 account SCP blocks Bedrock operations in other regions, so the customer-managed path with
-OpenSearch Serverless is required.
+OpenSearch Serverless is used instead.
