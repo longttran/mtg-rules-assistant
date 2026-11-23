@@ -1,0 +1,26 @@
+[
+  {
+    "id": "keyword-lookup",
+    "question": "Does Questing Beast have haste?",
+    "expect_tools": ["get_card"],
+    "expect_in_answer": ["haste"]
+  },
+  {
+    "id": "interaction-rulings",
+    "question": "If my creature has deathtouch and trample, how much damage do I need to assign to a blocker?",
+    "expect_tools": ["get_card_rulings", "get_card"],
+    "expect_in_answer": ["1"]
+  },
+  {
+    "id": "fake-card-refusal",
+    "question": "What does the card Glorbnax, Eater of Tuesdays do?",
+    "expect_tools": ["get_card"],
+    "expect_in_answer_any": ["couldn't find", "could not find", "not found", "doesn't exist"]
+  },
+  {
+    "id": "search-by-description",
+    "question": "What's a 1-mana blue instant that counters a spell unless its controller pays 1?",
+    "expect_tools": ["search_cards"],
+    "expect_in_answer_any": ["Spell Pierce", "Force Spike"]
+  }
+]
