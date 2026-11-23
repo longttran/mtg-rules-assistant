@@ -83,8 +83,10 @@ keyword definitions, and game mechanics before answering rules questions.
 | Resource | Name / ID |
 |---|---|
 | S3 bucket | `mtg-rules-assistant-kb-<account-id>` |
+| IAM role | `AmazonBedrockExecutionRoleForKB-mtg-rules` |
 | OpenSearch Serverless collection | `mtg-rules-kb` |
-| Bedrock Knowledge Base | `mtg-comprehensive-rules` (ID set in `BEDROCK_KB_ID`) | `amazon.titan-embed-text-v2:0` |
+| Bedrock Knowledge Base | `mtg-comprehensive-rules` (ID set in `BEDROCK_KB_ID`) |
+| Embedding model | `amazon.titan-embed-text-v2:0` |
 | Chunking | Hierarchical (1500 / 300 tokens, 60 token overlap) |
 
 ### Why Managed KB wasn't used
