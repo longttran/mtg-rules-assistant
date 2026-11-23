@@ -36,6 +36,7 @@ python evals/run_evals.py         # live evals against the model
 ```
 AWS_REGION=us-east-2
 BEDROCK_MODEL_ID=us.anthropic.claude-haiku-4-5-20251001-v1:0
+BEDROCK_KB_ID=<your knowledge base ID>
 ```
 
 Use a cross-region inference profile ID (with `us.` prefix) — base model IDs are not
@@ -81,11 +82,9 @@ keyword definitions, and game mechanics before answering rules questions.
 
 | Resource | Name / ID |
 |---|---|
-| S3 bucket | `mtg-rules-assistant-kb-565950324050` |
-| IAM role | `AmazonBedrockExecutionRoleForKB-mtg-rules` |
-| OpenSearch Serverless collection | `mtg-rules-kb` (`a6gghypuxlw255e4yyqf`) |
-| Bedrock Knowledge Base | `mtg-comprehensive-rules` (`Q10WCVYIPC`) |
-| Embedding model | `amazon.titan-embed-text-v2:0` |
+| S3 bucket | `mtg-rules-assistant-kb-<account-id>` |
+| OpenSearch Serverless collection | `mtg-rules-kb` |
+| Bedrock Knowledge Base | `mtg-comprehensive-rules` (ID set in `BEDROCK_KB_ID`) | `amazon.titan-embed-text-v2:0` |
 | Chunking | Hierarchical (1500 / 300 tokens, 60 token overlap) |
 
 ### Why Managed KB wasn't used
