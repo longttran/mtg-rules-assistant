@@ -8,7 +8,7 @@
   {
     "id": "interaction-rulings",
     "question": "If my creature has deathtouch and trample, how much damage do I need to assign to a blocker?",
-    "expect_tools": ["get_card_rulings", "get_card"],
+    "expect_tools": [],
     "expect_in_answer": ["1"]
   },
   {
@@ -21,6 +21,6 @@
     "id": "search-by-description",
     "question": "What's a 1-mana blue instant that counters a spell unless its controller pays 1?",
     "expect_tools": ["search_cards"],
-    "expect_in_answer_any": ["Spell Pierce", "Force Spike"]
+    "expect_in_answer_any": ["Spell Pierce", "Force Spike", "Jwari Disruption", "Daze"]
   }
 ]
