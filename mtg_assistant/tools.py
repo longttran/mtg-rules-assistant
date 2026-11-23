@@ -1,4 +1,4 @@
-"""Scryfall-backed tools the agent can call.
+"""Scryfall-backed tools the agent can call, plus Bedrock KB rules lookup.
 
 Scryfall API docs: https://scryfall.com/docs/api
 Etiquette: send a User-Agent + Accept header and wait 50-100 ms between requests.
@@ -6,9 +6,11 @@ Etiquette: send a User-Agent + Accept header and wait 50-100 ms between requests
 
 from __future__ import annotations
 
+import os
 import time
 from typing import Any
 
+import boto3
 import requests
 
 SCRYFALL_BASE = "https://api.scryfall.com"
@@ -85,6 +87,27 @@ def search_cards(query: str, limit: int = 5) -> dict[str, Any]:
     return {"total": data.get("total_cards", len(cards)), "cards": cards}
 
 
+def search_rules(query: str, num_results: int = 5) -> dict[str, Any]:
+    """Search the MTG Comprehensive Rules via Bedrock Knowledge Base."""
+    kb_id = os.environ.get("BEDROCK_KB_ID")
+    if not kb_id:
+        raise ToolError("BEDROCK_KB_ID not set — Comprehensive Rules search unavailable.")
+    client = boto3.client("bedrock-agent-runtime", region_name=os.environ.get("AWS_REGION", "us-east-2"))
+    try:
+        resp = client.retrieve(
+            knowledgeBaseId=kb_id,
+            retrievalQuery={"text": query},
+            retrievalConfiguration={"vectorSearchConfiguration": {"numberOfResults": num_results}},
+        )
+    except Exception as exc:
+        raise ToolError(f"Rules KB lookup failed: {exc}") from exc
+    results = [
+        {"text": r["content"]["text"], "score": r.get("score", 0)}
+        for r in resp.get("retrievalResults", [])
+    ]
+    return {"query": query, "results": results}
+
+
 # ---- Tool registry: Bedrock Converse toolSpec + Python implementation ----
 
 TOOLS: dict[str, dict[str, Any]] = {
@@ -126,6 +149,23 @@ TOOLS: dict[str, dict[str, Any]] = {
                 "properties": {
                     "query": {"type": "string", "description": "Scryfall search query"},
                     "limit": {"type": "integer", "description": "Max results (1-10)"},
+                },
+                "required": ["query"],
+            }},
+        },
+    },
+    "search_rules": {
+        "fn": search_rules,
+        "spec": {
+            "name": "search_rules",
+            "description": "Search the official MTG Comprehensive Rules for rules text, "
+            "definitions, and interactions. Use for questions about game mechanics, "
+            "turn structure, keyword definitions, or anything not covered by a specific card.",
+            "inputSchema": {"json": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Rules question or keyword to look up"},
+                    "num_results": {"type": "integer", "description": "Number of rules passages to return (1-10)"},
                 },
                 "required": ["query"],
             }},

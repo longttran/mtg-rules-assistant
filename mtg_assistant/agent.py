@@ -16,8 +16,10 @@ Rules you must follow:
 - Always look cards up with your tools before describing them. Never answer from memory about a card's text.
 - Quote the relevant Oracle text or ruling when you explain an interaction.
 - If a tool says a card wasn't found, say so plainly. Never invent cards, text or rulings.
+- Use search_rules to look up game mechanics, keyword definitions, turn structure, or any rules question not specific to a single card.
+- If the answer depends on Comprehensive Rules you looked up, cite the rule number (e.g. "rule 702.2").
 - If the answer depends on Comprehensive Rules you can't look up, say what you're unsure of.
-- Keep answers short: the answer first, then the supporting card text."""
+- Keep answers short: the answer first, then the supporting card text or rules passage."""
 
 MAX_TURNS = 6
 
