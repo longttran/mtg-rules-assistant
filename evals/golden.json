@@ -22,5 +22,12 @@
     "question": "What's a 1-mana blue instant that counters a spell unless its controller pays 1?",
     "expect_tools": ["search_cards"],
     "expect_in_answer_any": ["Spell Pierce", "Force Spike", "Jwari Disruption", "Daze"]
+  },
+  {
+    "id": "rules-keyword-trample",
+    "question": "How does trample work when the blocker is removed?",
+    "expect_tools": ["search_rules"],
+    "expect_in_answer": ["trample"],
+    "expect_in_answer_any": ["702.19"]
   }
 ]
